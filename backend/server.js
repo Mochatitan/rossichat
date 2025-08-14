@@ -34,16 +34,15 @@ io.on("connection", (socket) => {
     });
 });
 
-// Serve frontend build
-const frontendPath = path.join(__dirname, "../frontend/chat-client/dist");
+// ✅ Serve your React build
+const frontendPath = "/root/chat/rossichat/frontend/chat-client/dist";
 app.use(express.static(frontendPath));
 
-// Handle SPA routing
 app.get("*", (req, res) => {
     res.sendFile(path.join(frontendPath, "index.html"));
 });
 
-// Start server
+// ✅ Listen on all interfaces
 server.listen(3001, "0.0.0.0", () => {
     console.log("Server running at http://<your_public_ip>:3001");
 });
