@@ -6,7 +6,8 @@ interface ChatMessage {
   text: string;
 }
 
-const socket: Socket = io("http://localhost:3001");
+// ✅ No hardcoded IP — will connect to same origin as the page
+const socket: Socket = io();
 
 export default function App() {
   const [nickname, setNickname] = useState<string>("");
