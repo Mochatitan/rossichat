@@ -1,9 +1,8 @@
 // server.js
-import express from "express";
-import http from "http";
-import { Server } from "socket.io";
-import path from "path";
-import { fileURLToPath } from "url";
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const path = require("path");
 
 const app = express();
 const server = http.createServer(app);
@@ -31,9 +30,6 @@ io.on("connection", (socket) => {
 });
 
 // Serve frontend
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 app.use(express.static("/root/rossichat/frontend/chat-client/dist"));
 app.get("*", (req, res) => {
     res.sendFile(
@@ -43,4 +39,6 @@ app.get("*", (req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 80;
-server.listen(PORT, "0.0.0.0");
+server.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
+});
