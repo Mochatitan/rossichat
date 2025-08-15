@@ -1,88 +1,86 @@
-import { useState, useEffect } from "react";
-import { io, Socket } from "socket.io-client";
+import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom/client";
+import { io } from "socket.io-client";
+import "./index.css";
 
-interface ChatMessage {
-  user: string;
-  text: string;
-}
+const socket = io(); // auto-connect to same origin
 
-// ✅ No hardcoded IP — will connect to same origin as the page
-const socket: Socket = io();
-
-export default function App() {
-  const [nickname, setNickname] = useState<string>("");
-  const [message, setMessage] = useState<string>("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [joined, setJoined] = useState<boolean>(false);
+function App() {
+  const [nickname, setNickname] = useState("");
+  const [tempNick, setTempNick] = useState("");
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState<string[]>([]);
 
   useEffect(() => {
-    socket.on("chat_history", (history: ChatMessage[]) => {
+    socket.on("chat message", (msg: string) => {
+      setMessages((prev) => [...prev, msg]);
+    });
+
+    socket.on("chat history", (history: string[]) => {
       setMessages(history);
     });
 
-    socket.on("chat_message", (data: ChatMessage) => {
-      setMessages((prev) => [...prev, data]);
-    });
-
     return () => {
-      socket.off("chat_history");
-      socket.off("chat_message");
+      socket.off("chat message");
+      socket.off("chat history");
     };
   }, []);
 
-  const joinChat = () => {
-    if (nickname.trim()) {
-      socket.emit("set_nickname", nickname);
-      setJoined(true);
-    }
-  };
-
-  const sendMessage = () => {
+  const sendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
     if (message.trim()) {
-      socket.emit("send_message", message);
+      socket.emit("chat message", `${nickname}: ${message}`);
       setMessage("");
     }
   };
 
+  if (!nickname) {
+    return (
+      <div style={{ padding: 20 }}>
+        <h2>Enter your nickname</h2>
+        <input
+          value={tempNick}
+          onChange={(e) => setTempNick(e.target.value)}
+          placeholder="Nickname"
+        />
+        <button onClick={() => tempNick && setNickname(tempNick)}>Join</button>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ padding: "20px", fontFamily: "sans-serif" }}>
-      {!joined ? (
-        <div>
-          <h2>Enter your nickname</h2>
-          <input
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            placeholder="Nickname"
-          />
-          <button onClick={joinChat}>Join</button>
-        </div>
-      ) : (
-        <div>
-          <h2>Chat Room</h2>
-          <div
-            style={{
-              border: "1px solid #ccc",
-              height: "300px",
-              overflowY: "auto",
-              padding: "10px",
-              marginBottom: "10px",
-            }}
-          >
-            {messages.map((m, i) => (
-              <div key={i}>
-                <strong>{m.user}: </strong>{m.text}
-              </div>
-            ))}
-          </div>
-          <input
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type a message..."
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          />
-          <button onClick={sendMessage}>Send</button>
-        </div>
-      )}
+    <div style={{ padding: 20 }}>
+      <h2>Chat Room</h2>
+      <div
+        style={{
+          border: "1px solid #ccc",
+          height: "300px",
+          overflowY: "scroll",
+          padding: "5px",
+          marginBottom: "10px",
+        }}
+      >
+        {messages.map((msg, i) => (
+          <div key={i}>{msg}</div>
+        ))}
+      </div>
+      <form onSubmit={sendMessage}>
+        <input
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Type a message..."
+          style={{ width: "80%" }}
+        />
+        <button type="submit" style={{ width: "18%" }}>
+          Send
+        </button>
+      </form>
     </div>
   );
 }
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);

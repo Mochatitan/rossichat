@@ -1,48 +1,48 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const path = require("path");
+// server.js
+import express from "express";
+import http from "http";
+import { Server } from "socket.io";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+const io = new Server(server);
 
-let chatHistory = [];
+// Keep track of messages in memory
+let messages = [];
 
+// Socket.io connection
 io.on("connection", (socket) => {
-    let nickname = "Anonymous";
+    console.log("A user connected");
 
-    socket.emit("chat_history", chatHistory);
+    // Send chat history to the new user
+    socket.emit("chat history", messages);
 
-    socket.on("set_nickname", (name) => {
-        nickname = name;
-        const joinMsg = { user: "Server", text: `${nickname} joined the chat` };
-        chatHistory.push(joinMsg);
-        io.emit("chat_message", joinMsg);
-    });
-
-    socket.on("send_message", (msg) => {
-        const newMsg = { user: nickname, text: msg };
-        chatHistory.push(newMsg);
-        io.emit("chat_message", newMsg);
+    // Listen for new messages
+    socket.on("chat message", (msg) => {
+        messages.push(msg);
+        io.emit("chat message", msg);
     });
 
     socket.on("disconnect", () => {
-        const leaveMsg = { user: "Server", text: `${nickname} left the chat` };
-        chatHistory.push(leaveMsg);
-        io.emit("chat_message", leaveMsg);
+        console.log("A user disconnected");
     });
 });
 
-// ✅ Serve your React build
-const frontendPath = "/root/chat/rossichat/frontend/chat-client/dist";
-app.use(express.static(frontendPath));
+// Serve frontend
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+app.use(express.static("/root/chat/rossichat/frontend/chat-client/dist"));
 app.get("*", (req, res) => {
-    res.sendFile(path.join(frontendPath, "index.html"));
+    res.sendFile(
+        path.join("/root/chat/rossichat/frontend/chat-client/dist", "index.html")
+    );
 });
 
-// ✅ Listen on all interfaces
-server.listen(3001, "0.0.0.0", () => {
-    console.log("Server running at http://<your_public_ip>:3001");
+// Start server
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
