@@ -34,10 +34,10 @@ io.on("connection", (socket) => {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.use(express.static("/root/chat/rossichat/frontend/chat-client/dist"));
+app.use(express.static("/root/rossichat/frontend/chat-client/dist"));
 app.get("*", (req, res) => {
     res.sendFile(
-        path.join("/root/chat/rossichat/frontend/chat-client/dist", "index.html")
+        path.join("/root/rossichat/frontend/chat-client/dist", "index.html")
     );
 });
 
