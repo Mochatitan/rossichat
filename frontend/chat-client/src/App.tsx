@@ -5,7 +5,7 @@ import "./index.css";
 
 const socket = io(); // auto-connect to same origin
 
-function App() {
+export function App() {
   const [nickname, setNickname] = useState("");
   const [tempNick, setTempNick] = useState("");
   const [message, setMessage] = useState("");
